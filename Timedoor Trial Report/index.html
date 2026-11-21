@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timedoor Academy – Trial Report Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+</head>
+<body>
+  <!-- TOP NAVBAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+            <rect x="4" y="6" width="24" height="36" rx="4" stroke="#FFFFFF" stroke-width="3.8"/>
+            <path d="M18 6L34 11V41L18 42V6Z" fill="#22C55E"/>
+            <circle cx="29" cy="24" r="2.3" fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">timedoor <span class="brand-accent">academy</span></span>
+          <span class="brand-sub">Trial Report Generator</span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <div class="progress-pill" id="formProgressPill">
+          <span class="dot"></span>
+          <span id="formProgressText">0 / 4 Langkah Selesai</span>
+        </div>
+        <button type="button" id="btnClearForm" class="btn-ghost" title="Reset semua input">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Reset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE (2-COLUMN DASHBOARD) -->
+  <main class="workspace">
+    <!-- KOLOM KIRI: FORM INPUT -->
+    <div class="workspace-left">
+      
+      <!-- CARD 1: STUDENT INFORMATION -->
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-num">1</div>
+          <div>
+            <h2>Student Information</h2>
+            <p>Data identitas siswa dan informasi kelas trial</p>
+          </div>
+        </div>
+
+        <div class="input-grid">
+          <div class="field">
+            <label for="studentName">Student Name <span class="req">*</span></label>
+            <input type="text" id="studentName" placeholder="Masukkan nama lengkap siswa..." autocomplete="off" />
+            <span class="field-error">Nama siswa wajib diisi.</span>
+          </div>
+
+          <div class="field">
+            <label for="trialDate">Trial Date <span class="req">*</span></label>
+            <input type="date" id="trialDate" />
+            <span class="field-error">Tanggal trial wajib dipilih.</span>
+          </div>
+
+          <div class="field">
+            <label for="teacherName">Teacher Name <span class="opt">Opsional</span></label>
+            <input type="text" id="teacherName" placeholder="Nama pengajar trial..." autocomplete="off" />
+          </div>
+
+          <div class="field">
+            <label for="branchName">Branch <span class="opt">Opsional</span></label>
+            <input type="text" id="branchName" placeholder="Contoh: Cimanggu Bogor" autocomplete="off" />
+          </div>
+        </div>
+      </section>
+
+      <!-- CARD 2: TRIAL ASSESSMENT -->
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-num">2</div>
+          <div>
+            <h2>Trial Assessment</h2>
+            <p>Klik skor <strong>1–5</strong> pada masing-masing aspek pembelajaran</p>
+          </div>
+        </div>
+
+        <div class="legend-bar">
+          <div class="legend-chip"><b>1</b> Needs Improvement</div>
+          <div class="legend-chip"><b>2</b> Developing</div>
+          <div class="legend-chip"><b>3</b> Average</div>
+          <div class="legend-chip"><b>4</b> Good</div>
+          <div class="legend-chip"><b>5</b> Excellent</div>
+        </div>
+
+        <!-- 5 Aspek Utama -->
+        <div id="assessmentContainer" class="criteria-stack"></div>
+
+        <!-- Interest Scale (Desain Input Terpisah) -->
+        <div class="interest-card">
+          <div class="interest-card-top">
+            <div>
+              <h3>Interest Scale <span class="req">*</span></h3>
+              <p>Tingkat ketertarikan dan antusiasme siswa terhadap aktivitas coding &amp; teknologi.</p>
+            </div>
+            <span class="status-badge" id="interestBadgeText">Belum dipilih</span>
+          </div>
+          <div class="interest-grid" id="interestSelectorGrid"></div>
+        </div>
+      </section>
+
+      <!-- CARD 3: KARAKTER & CATATAN ANAK -->
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-num">3</div>
+          <div>
+            <h2>Karakter &amp; Catatan Anak</h2>
+            <p>Pilih satu atau lebih karakter selama sesi trial (otomatis dirangkai menjadi kalimat positif untuk orang tua)</p>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom: 18px;">
+          <label>Karakter Anak <span class="req">*</span> <span class="opt">Boleh pilih lebih dari 1</span></label>
+          <div class="trait-grid" id="traitSelectorGrid"></div>
+          <div id="otherTraitWrapper" class="other-trait-box hidden">
+            <input type="text" id="otherTraitInput" placeholder="Tuliskan karakter lainnya (contoh: Cepat tanggap secara visual)..." autocomplete="off" />
+          </div>
+          <div class="narrative-preview-box" id="traitNarrativePreview">
+            Pilih minimal satu karakter anak untuk melihat pratinjau kalimat laporan.
+          </div>
+        </div>
+
+        <div class="special-care-box">
+          <label class="sc-title">Apakah anak memerlukan perlakuan/perhatian khusus? <span class="req">*</span></label>
+          <div class="sc-radio-row">
+            <label class="sc-radio-pill">
+              <input type="radio" name="specialAttention" value="TIDAK" checked />
+              <span>TIDAK</span>
+            </label>
+            <label class="sc-radio-pill">
+              <input type="radio" name="specialAttention" value="YA" />
+              <span>YA</span>
+            </label>
+          </div>
+
+          <div id="specialNoteWrapper" class="field hidden" style="margin-top: 12px;">
+            <label for="specialNoteInput">Jika Ya, jelaskan kondisinya <span class="req">*</span></label>
+            <textarea id="specialNoteInput" rows="2" placeholder="Contoh: Anak lebih nyaman dengan instruksi bertahap satu per satu dan penguatan positif..."></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- CARD 4: PATHWAY & LEARNING PATH -->
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-num">4</div>
+          <div>
+            <h2>Recommended Pathway &amp; Learning Path</h2>
+            <p>Pilih 1 Pathway utama lalu tentukan Learning Path yang direkomendasikan</p>
+          </div>
+        </div>
+
+        <div class="pathway-cards" id="pathwayGrid"></div>
+
+        <div id="learningPathSection" class="lp-drawer hidden">
+          <div class="lp-drawer-head">
+            <div>
+              <h3>Learning Path – <span id="selectedPathwayTitle">-</span></h3>
+              <p>Centang satu atau lebih modul yang sesuai hasil observasi</p>
+            </div>
+            <span class="lp-badge" id="lpCounterBadge">0 Dipilih</span>
+          </div>
+          <div class="lp-grid" id="learningPathList"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- KOLOM KANAN: LIVE ANALYSIS & EXPORT CONTROLS -->
+    <aside class="workspace-right">
+      <div class="sticky-sidebar">
+        <section class="panel analysis-panel">
+          <div class="panel-head compact">
+            <div class="panel-num accent">5</div>
+            <div>
+              <h2>Live Analysis Result</h2>
+              <p>Grafik diperbarui otomatis saat nilai diisi</p>
+            </div>
+          </div>
+
+          <div class="radar-stage">
+            <canvas id="uiRadarCanvas" width="340" height="300"></canvas>
+          </div>
+
+          <div class="interest-meter">
+            <div class="ring-box">
+              <svg class="ring-svg" width="96" height="96" viewBox="0 0 100 100">
+                <circle class="ring-track" cx="50" cy="50" r="40" />
+                <circle class="ring-fill" id="interestRingFill" cx="50" cy="50" r="40" />
+              </svg>
+              <div class="ring-inner">
+                <span id="ringEmoji">🤔</span>
+                <strong id="ringScoreText">0/5</strong>
+              </div>
+            </div>
+            <div class="interest-meter-info">
+              <span class="meter-caption">INTEREST SCALE</span>
+              <h4 id="ringLabelTitle">Belum Dinilai</h4>
+              <p id="ringLabelDesc">Pilih tingkat ketertarikan siswa pada panel Assessment.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ACTION PANEL -->
+        <section class="panel export-panel">
+          <button type="button" id="btnPreviewReport" class="btn-preview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            Preview Template Report
+          </button>
+
+          <!-- <button type="button" id="btnGeneratePdf" class="btn-generate" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            <span id="btnPdfText">GENERATE TRIAL REPORT</span>
+            <span id="btnPdfSpinner" class="spinner hidden"></span>
+          </button> -->
+
+          <p class="helper-note" id="validationHint">
+            Lengkapi seluruh data wajib untuk mengaktifkan export PDF.
+          </p>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <!-- MODAL PREVIEW REPORT (MENGGUNAKAN GAMBAR TEMPLATE ASLI TIMEDOOR) -->
+  <div id="previewModal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3>Preview Trial Report Card (2 Halaman A4)</h3>
+          <p>Hasil akhir menggunakan template desain resmi Timedoor Academy</p>
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="btnDownloadFromModal" class="btn-generate sm">
+            ⬇️ Download PDF
+          </button>
+          <button type="button" id="btnCloseModal" class="btn-close-modal">✕ Tutup</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div id="reportPrintableContainer" class="a4-stack">
+          
+          <!-- HALAMAN 1: TEMPLATE DEPAN ASLI -->
+          <div class="a4-sheet" id="pdfPage1">
+            <img id="imgFrontTemplate" src="assets/Front_JUNIOR CODER.png" alt="Front Report Template" class="sheet-bg" />
+
+            <!-- Nama Siswa di kotak NAMA: -->
+            <div class="tpl-name" id="tplStudentName">-</div>
+
+            <!-- Tanggal di kotak TANGGAL: -->
+            <div class="tpl-date" id="tplTrialDate">-</div>
+
+            <!-- Info Teacher / Branch (opsional) -->
+            <div class="tpl-meta" id="tplMetaSubrow"></div>
+
+            <!-- Spider Chart + Karakter Anak + Catatan Khusus di dalam area putih Analysis Result -->
+            <div class="tpl-chart-slot">
+              <canvas id="pdfRadarCanvas" width="560" height="430"></canvas>
+              <div class="tpl-notes-container">
+                <div class="tpl-trait-box" id="tplTraitText"></div>
+                <div class="tpl-special-box hidden" id="tplSpecialNoteText"></div>
+              </div>
+            </div>
+
+            <!-- Circular Indicator kecil di sudut kanan atas kolom Interest Scale -->
+            <div class="tpl-interest-ring">
+              <svg width="52" height="52" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="23" stroke="#E2E8F0" stroke-width="6" fill="#FFFFFF"/>
+                <circle id="tplMiniRing" cx="30" cy="30" r="23" stroke="#0095EB" stroke-width="6" fill="none"
+                  stroke-dasharray="144.51" stroke-dashoffset="144.51" stroke-linecap="round"
+                  transform="rotate(-90 30 30)"/>
+              </svg>
+              <span id="tplMiniRingText">0/5</span>
+            </div>
+
+            <!-- Highlight pada emoji Interest Scale yang dipilih -->
+            <div class="tpl-emoji-focus hidden" id="tplEmojiHighlight"></div>
+          </div>
+
+          <!-- HALAMAN 2: TEMPLATE BELAKANG ASLI -->
+          <div class="a4-sheet" id="pdfPage2">
+            <img id="imgBackTemplate" src="assets/Back_JUNIOR CODER.jpg" alt="Back Report Template" class="sheet-bg" />
+
+            <!-- 4 Slot Tanda Centang di atas kotak checkbox asli -->
+            <div class="tpl-check" id="chk-slot-0"></div>
+            <div class="tpl-check" id="chk-slot-1"></div>
+            <div class="tpl-check" id="chk-slot-2"></div>
+            <div class="tpl-check" id="chk-slot-3"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastNotification" class="toast hidden" role="status"></div>
+
+  <script src="js/pathway.js"></script>
+  <script src="js/assessment.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/pdf-generator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
